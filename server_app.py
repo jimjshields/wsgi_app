@@ -7,13 +7,13 @@ def createHeader(string, width=100):
 	return dashes + string + dashes
 
 def createSubHeader(string, width=100):
-	"""Pads string with spaces and dashes for better terminal printing.
+	"""Pads string with left-side dashes for better terminal printing.
 	   Makes string look like a subheader."""
 
 	length = len(string)
-	numDashes = (width - length)/4
+	numDashes = (width - length)/2
 	dashes = numDashes * '-'
-	return dashes + string + dashes
+	return dashes + string
 
 # Taken directly from https://gist.github.com/thomasballinger/5104059
 # Annotated for further understanding.
@@ -97,13 +97,15 @@ def serve(app):
 		print createSubHeader('The rest of the request')
 		print rest
 
+		print createHeader('End of Client Request'), '\n'
+
 		# Defines the WSGI interface method.
 		def start_response(status, headers):
 			"""Defines a function for sending a response to a client socket given an HTTP status and HTTP headers."""
 
 			httpResponse = '\r\n'.join(['HTTP/0.9%s' % (status)] + [k+': '+v for k, v in headers])
 
-			print createHeader('Server Response')
+			print createHeader('Server HTTP Response')
 			print createSubHeader('Status')
 			print status
 			print createSubHeader('Headers')
@@ -117,24 +119,35 @@ def serve(app):
 			client_socket.send('\r\n\r\n')
 
 			print 'Sent the HTTP response from %s to %s.' % (listener, client_socket)
+			print createHeader('End of Server HTTP Response'), '\n'
 		
 		# Defines the environment to be used when serving the app.
 		environ = {'REQUEST_METHOD': method, 'PATH_INFO': path}
 		
 		# Sends all data from the listener to the client.
+		print createHeader('Server Sending Data to Client')
 		for data in app(environ, start_response):
-			print createHeader('Sending Data')
-			print '%s is sending data to %s' % (listener, client_socket)
 			print 'Data: %s' % (data)
 
 			client_socket.send(data)
 
+		print createHeader('End Sending Data'), '\n'
+
 		client_socket.close()
 		print createHeader('Closing Socket')
 		print '%s has been closed.' % (client_socket)
+		print createHeader('End of Server/Client Connection'), '\n'
 
 def demo_app(environ, start_response):
+	"""Creates an app object that can be served."""
+
+	print createSubHeader('Creating WSGI app')
+
+	# Calls the callback function with HTTP status & headers.
 	start_response('200 OK', [('Content-Type', 'text/plain')])
+
+	print createSubHeader('Returning data to client')
+	# Returns info on the environment; will display to the client.
 	return [('You asked to ' + environ['REQUEST_METHOD'] + ' ' + environ['PATH_INFO']), 'asdf']
 
 if __name__ == '__main__':
