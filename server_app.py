@@ -1,5 +1,3 @@
-import os
-
 class colors(object):
 	RED = '\033[91m'
 	GREEN = '\033[92m'
@@ -102,17 +100,6 @@ def serve(app):
 		# The argument is the buffer size (bufsize) which specifies the max amount of data received at once.
 		request = client_socket.recv(10000)
 
-		print createHeader('Request', colors.RED)
-
-		print environ
-
-		print createHeader('os.environ', colors.RED)
-
-		print os.environ
-
-		print createHeader('', colors.RED)
-
-
 		# Assigns the first part of the request to method. (expects HTTP requests - i.e., GET, POST, etc.)
 		# Assigns the remaining part of the request to rest.
 		method, rest = request.split(' ', 1)
@@ -120,18 +107,16 @@ def serve(app):
 		# In the remaining part, assigns the path to path, and the remaining part to rest.
 		path, rest = rest.split(None, 1)
 
-		# print createHeader('Client Request', colors.MAGENTA)
+		print createHeader('Client Request', colors.MAGENTA)
 
-		# print os.environ
+		print createSubHeader('Method')
+		print method
+		print createSubHeader('Path')
+		print path
+		print createSubHeader('The rest of the request')
+		print rest
 
-		# print createSubHeader('Method')
-		# print method
-		# print createSubHeader('Path')
-		# print path
-		# print createSubHeader('The rest of the request')
-		# print rest
-
-		# print createHeader('End of Client Request', colors.MAGENTA)
+		print createHeader('End of Client Request', colors.MAGENTA)
 
 		# Defines the WSGI interface method.
 		def start_response(status, headers):
