@@ -1,3 +1,5 @@
+import os
+
 class colors(object):
 	RED = '\033[91m'
 	GREEN = '\033[92m'
@@ -20,7 +22,7 @@ def createHeader(string, color=colors.DEFAULT, width=100):
 	length = len(string)
 	numDashes = (width - length)/2
 	dashes = numDashes * '-'
-	return color + dashes + string + dashes + colors.ENDC
+	return wrap_in_newlines(color + dashes + string + dashes + colors.ENDC)
 
 def createSubHeader(string, width=100):
 	"""Pads string with left-side dashes for better terminal printing.
@@ -30,6 +32,9 @@ def createSubHeader(string, width=100):
 	numDashes = (width - length)/2
 	dashes = numDashes * '-'
 	return colors.BLUE + dashes + string + colors.ENDC
+
+def wrap_in_newlines(string):
+	return '\n%s\n' % (string)
 
 # Taken directly from https://gist.github.com/thomasballinger/5104059
 # Annotated for further understanding.
@@ -89,13 +94,24 @@ def serve(app):
 		client_socket, client_address = listener.accept()
 
 		print createHeader('Creation of Client Socket', colors.CYAN)
-		print 'New client socket %s was created.' % (client_socket)
+		print 'New client socket was created.'
 		print 'Server received connection from client socket at host %s, port %s.' % (client_address[0], client_address[1])
 
 		# Receives data from the client socket and assigns it.
 		# The return value is a string representing the data received.
 		# The argument is the buffer size (bufsize) which specifies the max amount of data received at once.
 		request = client_socket.recv(10000)
+
+		print createHeader('Request', colors.RED)
+
+		print environ
+
+		print createHeader('os.environ', colors.RED)
+
+		print os.environ
+
+		print createHeader('', colors.RED)
+
 
 		# Assigns the first part of the request to method. (expects HTTP requests - i.e., GET, POST, etc.)
 		# Assigns the remaining part of the request to rest.
@@ -104,16 +120,18 @@ def serve(app):
 		# In the remaining part, assigns the path to path, and the remaining part to rest.
 		path, rest = rest.split(None, 1)
 
-		print createHeader('Client Request', colors.MAGENTA)
+		# print createHeader('Client Request', colors.MAGENTA)
 
-		print createSubHeader('Method')
-		print method
-		print createSubHeader('Path')
-		print path
-		print createSubHeader('The rest of the request')
-		print rest
+		# print os.environ
 
-		print createHeader('End of Client Request', colors.MAGENTA), '\n'
+		# print createSubHeader('Method')
+		# print method
+		# print createSubHeader('Path')
+		# print path
+		# print createSubHeader('The rest of the request')
+		# print rest
+
+		# print createHeader('End of Client Request', colors.MAGENTA)
 
 		# Defines the WSGI interface method.
 		def start_response(status, headers):
@@ -133,8 +151,6 @@ def serve(app):
 			# Sends the HTTP response from the server socket to its connected client socket.
 			client_socket.send(httpResponse)
 			client_socket.send('\r\n\r\n')
-
-			print 'Sent the HTTP response from %s to %s.' % (listener, client_socket)
 		
 		# Defines the environment to be used when serving the app.
 		environ = {'REQUEST_METHOD': method, 'PATH_INFO': path}
@@ -142,16 +158,16 @@ def serve(app):
 		# Sends all data from the listener to the client.
 		print createHeader('Server Sending Data to Client', colors.RED)
 		for data in app(environ, start_response):
-			print 'Data: %s' % (data)
+			print data
 
 			client_socket.send(data)
 
-		print createHeader('End Sending Data', colors.RED), '\n'
+		print createHeader('End Sending Data', colors.RED)
 
 		client_socket.close()
 		print createHeader('Closing Client Socket', colors.CYAN)
 		print '%s has been closed.' % (client_socket)
-		print createHeader('End of Server/Client Connection', colors.CYAN), '\n'
+		print createHeader('End of Server/Client Connection', colors.CYAN)
 
 def demo_app(environ, start_response):
 	"""Creates an app object that can be served."""
