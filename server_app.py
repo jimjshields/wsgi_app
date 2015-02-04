@@ -25,8 +25,8 @@ def serve(app):
 	listener = socket.socket(sock_family, sock_type, sock_proto)
 
 	print createHeader('Creation of Server Socket', colors.GREEN)
-	print 'New listener/server socket %s was created with default settings: family %s, type %s, and protocol %s.' % (listener, sock_family, sock_type, sock_proto)
-	print 'This socket will listen for connections.'
+	print 'A new listener/server socket was created with default settings: family %s, type %s, and protocol %s.' % (sock_family, sock_type, sock_proto)
+	print 'This socket will listen for connections from client sockets.'
 
 	# Sets the socket options for the socket object.
 	# The below are the default options.
@@ -36,7 +36,7 @@ def serve(app):
 
 	listener.setsockopt(level, optname, value)
 
-	print 'Default socket options have been set for %s.' % (listener)
+	print 'Default socket options have been set for the server socket.'
 	print 'It has level %s, optname %s, and value %s.' % (level, optname, value)
 
 	# Binds the socket to a local address with host HOST and port PORT.
@@ -45,7 +45,7 @@ def serve(app):
 
 	listener.bind((HOST, PORT))
 
-	print 'Socket has been bound to host "%s" and port %s.' % (HOST, PORT)
+	print 'Server socket has been bound to host "%s" and port %s.' % (HOST, PORT)
 
 	host_pretty = 'localhost' if HOST == '' else HOST
 
@@ -64,13 +64,13 @@ def serve(app):
 		client_socket, client_address = listener.accept()
 
 		print createHeader('Creation of New Client Socket', colors.CYAN)
-		print 'New client socket was created.'
+		print 'You connected! A new client socket was created.'
 		print 'Server received connection from client socket at host %s, port %s.' % (client_address[0], client_address[1])
 
 		# Receives data from the client socket and assigns it.
 		# The return value is a string representing the data received.
 		# The argument is the buffer size (bufsize) which specifies the max amount of data received at once.
-		request = client_socket.recv(10000)
+		request = client_socket.recv(1024)
 
 		# Assigns the first part of the request to method. (expects HTTP requests - i.e., GET, POST, etc.)
 		# Assigns the remaining part of the request to rest.
@@ -82,12 +82,12 @@ def serve(app):
 		# For printing - splits into request line and headers.
 		request_line, headers = request.split('\r\n', 1)
 
-		print createHeader('Client Request', colors.MAGENTA)
+		print createHeader('Client HTTP Request', colors.MAGENTA)
 		print createSubHeader('Request Line')
 		print request_line
 		print createSubHeader('Headers')
 		print headers
-		print createHeader('End of Client Request', colors.MAGENTA)
+		print createHeader('End of Client HTTP Request', colors.MAGENTA)
 
 		# Defines the interface method.
 		def start_response(status, headers):
@@ -130,7 +130,7 @@ def serve(app):
 def demo_app(environ, start_response):
 	"""Creates an app object that can be served."""
 
-	print createSubHeader('Calling the app')
+	print createSubHeader('Server is calling the app to generate the HTTP response')
 
 	# Calls the callback function with HTTP status & headers.
 	start_response('200 OK', [('Content-Type', 'text/plain')])
