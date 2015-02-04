@@ -1,41 +1,6 @@
-class colors(object):
-	RED = '\033[91m'
-	GREEN = '\033[92m'
-	BLUE = '\033[94m'
-	CYAN = '\033[96m'
-	WHITE = '\033[97m'
-	YELLOW = '\033[93m'
-	MAGENTA = '\033[95m'
-	GREY = '\033[90m'
-	BLACK = '\033[90m'
-	DEFAULT = '\033[99m'
-	ENDC = '\033[0m'
-	BOLD = '\033[1m'
-	UNDERLINE = '\033[4m'
+from blessings import Terminal
 
-def createHeader(string, color=colors.DEFAULT, width=100, new_lines=True):
-	"""Pads string with dashes for better terminal printing.
-	   Allows for color printing."""
-
-	length = len(string)
-	numDashes = (width - length)/2
-	dashes = numDashes * '-'
-	if new_lines:
-		return wrap_in_newlines(color + dashes + string + dashes + colors.ENDC)
-	else:
-		return color + dashes + string + dashes + colors.ENDC
-
-def createSubHeader(string, width=100):
-	"""Pads string with left-side dashes for better terminal printing.
-	   Makes string look like a subheader."""
-
-	length = len(string)
-	numDashes = (width - length)/2
-	dashes = numDashes * '-'
-	return colors.BLUE + dashes + string + colors.ENDC
-
-def wrap_in_newlines(string):
-	return '\n%s\n' % (string)
+term = Terminal()
 
 # Taken directly from https://gist.github.com/thomasballinger/5104059
 # Annotated for further understanding.
@@ -169,9 +134,57 @@ def demo_app(environ, start_response):
 	# Calls the callback function with HTTP status & headers.
 	start_response('200 OK', [('Content-Type', 'text/plain')])
 
-	print createSubHeader('The actual data returned to the client')
+	print createSubHeader('Body')
 	# Returns info on the environment; will display to the client.
 	return [('You asked to ' + environ['REQUEST_METHOD'] + ' ' + environ['PATH_INFO']), 'second item']
+
+# Utility
+
+class colors(object):
+	RED = '\033[91m'
+	GREEN = '\033[92m'
+	BLUE = '\033[94m'
+	CYAN = '\033[96m'
+	WHITE = '\033[97m'
+	YELLOW = '\033[93m'
+	MAGENTA = '\033[95m'
+	GREY = '\033[90m'
+	BLACK = '\033[90m'
+	DEFAULT = '\033[99m'
+	ENDC = '\033[0m'
+	BOLD = '\033[1m'
+	UNDERLINE = '\033[4m'
+
+def createHeader(string, color=colors.DEFAULT, width=None, new_lines=True):
+	"""Pads string with dashes for better terminal printing.
+	   Allows for color printing."""
+
+	if width == None:
+		width = term.width
+
+	length = len(string)
+	numDashes = (width - length)/2
+	dashes = numDashes * '-'
+	if new_lines:
+		return wrap_in_newlines(color + dashes + string + dashes + colors.ENDC)
+	else:
+		return color + dashes + string + dashes + colors.ENDC
+
+def createSubHeader(string, width=None):
+	"""Pads string with left-side dashes for better terminal printing.
+	   Makes string look like a subheader."""
+
+	if width == None:
+		width = term.width
+
+	length = len(string)
+	numDashes = (width - length)/2
+	dashes = numDashes * '-'
+	return colors.BLUE + dashes + string + colors.ENDC
+
+def wrap_in_newlines(string):
+	return '\n%s\n' % (string)
+
 
 if __name__ == '__main__':
 	serve(demo_app)
