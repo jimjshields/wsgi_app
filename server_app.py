@@ -79,31 +79,33 @@ def serve(app):
 		# In the remaining part, assigns the path to path, and the remaining part to rest.
 		path, rest = rest.split(None, 1)
 
+		# For printing - splits into request line and headers.
+		request_line, headers = request.split('\r\n', 1)
+
 		print createHeader('Client Request', colors.MAGENTA)
-
-		print createSubHeader('Method')
-		print method
-		print createSubHeader('Path')
-		print path
-		print createSubHeader('The rest of the request')
-		print rest
-
-		print createHeader('End of Client Request', colors.MAGENTA, new_lines=False)
+		print createSubHeader('Request Line')
+		print request_line
+		print createSubHeader('Headers')
+		print headers
+		print createHeader('End of Client Request', colors.MAGENTA)
 
 		# Defines the interface method.
 		def start_response(status, headers):
 			"""Defines a function for sending a response to a client socket given an HTTP status and HTTP headers."""
 
-			httpResponse = '\r\n'.join(['HTTP/0.9 %s' % (status)] + [k+': '+v for k, v in headers])
+			crlf = '\r\n' # carriage return + line feed
+			http_version = 'HTTP/0.9'
+		
+			status_line = '%s %s' % (http_version, status)
+			headers_fmtd = [k+': '+v for k, v in headers]
+
+			httpResponse = crlf.join([status_line] + headers_fmtd)
 
 			print createHeader('Server HTTP Response', colors.GREY)
-			print createSubHeader('Status')
-			print status
-			print createSubHeader('Headers')
-			print headers
-			print createSubHeader('Body')
-			print httpResponse
-			print createHeader('End of Server HTTP Response', colors.GREY)
+			print createSubHeader('Status Line')
+			print status_line
+			print createSubHeader('Header Fields')
+			print crlf.join(headers_fmtd)
 
 			# Sends the HTTP response from the server socket to its connected client socket.
 			client_socket.send(httpResponse)
@@ -113,13 +115,12 @@ def serve(app):
 		environ = {'REQUEST_METHOD': method, 'PATH_INFO': path}
 		
 		# Sends all data from the listener to the client.
-		print createHeader('Server Sending Data to Client', colors.RED)
 		for data in app(environ, start_response):
 			print data
 
 			client_socket.send(data)
 
-		print createHeader('End Sending Data', colors.RED, new_lines=False)
+		print createHeader('End of Server HTTP Response', colors.GREY)
 
 		client_socket.close()
 		print createHeader('Closing Client Socket', colors.CYAN)
@@ -134,7 +135,7 @@ def demo_app(environ, start_response):
 	# Calls the callback function with HTTP status & headers.
 	start_response('200 OK', [('Content-Type', 'text/plain')])
 
-	print createSubHeader('Body')
+	print createSubHeader('Message Body')
 	# Returns info on the environment; will display to the client.
 	return [('You asked to ' + environ['REQUEST_METHOD'] + ' ' + environ['PATH_INFO']), 'second item']
 
