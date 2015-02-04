@@ -1,2 +1,5 @@
 # Some files for reference on basic WSGI stuff.
 reference
+
+# Virtual env
+venv
