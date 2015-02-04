@@ -13,14 +13,17 @@ class colors(object):
 	BOLD = '\033[1m'
 	UNDERLINE = '\033[4m'
 
-def createHeader(string, color=colors.DEFAULT, width=100):
+def createHeader(string, color=colors.DEFAULT, width=100, new_lines=True):
 	"""Pads string with dashes for better terminal printing.
 	   Allows for color printing."""
 
 	length = len(string)
 	numDashes = (width - length)/2
 	dashes = numDashes * '-'
-	return wrap_in_newlines(color + dashes + string + dashes + colors.ENDC)
+	if new_lines:
+		return wrap_in_newlines(color + dashes + string + dashes + colors.ENDC)
+	else:
+		return color + dashes + string + dashes + colors.ENDC
 
 def createSubHeader(string, width=100):
 	"""Pads string with left-side dashes for better terminal printing.
@@ -79,6 +82,10 @@ def serve(app):
 
 	print 'Socket has been bound to host "%s" and port %s.' % (HOST, PORT)
 
+	host_pretty = 'localhost' if HOST == '' else HOST
+
+	print createHeader('You can connect to the server at %s:%s' % (host_pretty, PORT), colors.GREEN)
+
 	# Starts listening for incoming connections.
 	# socket().listen(num_connections)
 	listener.listen(5)
@@ -91,7 +98,7 @@ def serve(app):
 		# When it does accept a connection, it assigns the client socket and address to the below tuple.
 		client_socket, client_address = listener.accept()
 
-		print createHeader('Creation of Client Socket', colors.CYAN)
+		print createHeader('Creation of New Client Socket', colors.CYAN)
 		print 'New client socket was created.'
 		print 'Server received connection from client socket at host %s, port %s.' % (client_address[0], client_address[1])
 
@@ -116,13 +123,13 @@ def serve(app):
 		print createSubHeader('The rest of the request')
 		print rest
 
-		print createHeader('End of Client Request', colors.MAGENTA)
+		print createHeader('End of Client Request', colors.MAGENTA, new_lines=False)
 
-		# Defines the WSGI interface method.
+		# Defines the interface method.
 		def start_response(status, headers):
 			"""Defines a function for sending a response to a client socket given an HTTP status and HTTP headers."""
 
-			httpResponse = '\r\n'.join(['HTTP/0.9%s' % (status)] + [k+': '+v for k, v in headers])
+			httpResponse = '\r\n'.join(['HTTP/0.9 %s' % (status)] + [k+': '+v for k, v in headers])
 
 			print createHeader('Server HTTP Response', colors.GREY)
 			print createSubHeader('Status')
@@ -147,7 +154,7 @@ def serve(app):
 
 			client_socket.send(data)
 
-		print createHeader('End Sending Data', colors.RED)
+		print createHeader('End Sending Data', colors.RED, new_lines=False)
 
 		client_socket.close()
 		print createHeader('Closing Client Socket', colors.CYAN)
@@ -157,14 +164,14 @@ def serve(app):
 def demo_app(environ, start_response):
 	"""Creates an app object that can be served."""
 
-	print createSubHeader('Creating WSGI app')
+	print createSubHeader('Calling the app')
 
 	# Calls the callback function with HTTP status & headers.
 	start_response('200 OK', [('Content-Type', 'text/plain')])
 
 	print createSubHeader('The actual data returned to the client')
 	# Returns info on the environment; will display to the client.
-	return [('You asked to ' + environ['REQUEST_METHOD'] + ' ' + environ['PATH_INFO']), 'asdf']
+	return [('You asked to ' + environ['REQUEST_METHOD'] + ' ' + environ['PATH_INFO']), 'second item']
 
 if __name__ == '__main__':
 	serve(demo_app)
